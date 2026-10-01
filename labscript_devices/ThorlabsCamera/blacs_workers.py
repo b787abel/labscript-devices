@@ -38,9 +38,16 @@ class ThorlabsCameraWorker(Worker):
         with h5py.File(self.h5_filepath, 'r') as f:
             self.use_camera = f['globals/thorlabs_camera'].attrs['use_camera']
             self.exposure_duration_us = int(f['globals/thorlabs_camera'].attrs['exposure_duration'])
+            roi_x0 = int(f['globals/thorlabs_camera'].attrs['roi_x0'])
+            roi_y0 = int(f['globals/thorlabs_camera'].attrs['roi_y0'])
+            roi_width = int(f['globals/thorlabs_camera'].attrs['roi_width'])
+            roi_height = int(f['globals/thorlabs_camera'].attrs['roi_height'])
+
         cli.log_message('Use camera: {}'.format(self.use_camera))
         cli.log_message('Exposure duration: {}'.format(self.exposure_duration_us))
+        cli.log_message('ROI: x0={}, y0={}, width={}, height={}'.format(roi_x0, roi_y0, roi_width, roi_height))
         if self.use_camera:
+            cli.set_roi(roi_x0, roi_y0, roi_width, roi_height)
             cli.arm(self.exposure_duration_us, 2)
         cli.close_rpc()
         return {}
@@ -62,4 +69,7 @@ class ThorlabsCameraWorker(Worker):
 
 
     def abort_transition_to_buffered(self):
+        return True
+
+    def abort_buffered(self): 
         return True
